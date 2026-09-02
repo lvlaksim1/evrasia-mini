@@ -6,331 +6,45 @@
   <meta name="theme-color" content="#081310">
   <meta name="color-scheme" content="dark light">
   <style>
-    :root {
-      --bg: var(--tg-theme-bg-color, #081310);
-      --text: var(--tg-theme-text-color, #f2f7f5);
-      --hint: var(--tg-theme-hint-color, #8ea09a);
-      --surface: var(--tg-theme-secondary-bg-color, #10201b);
-      --button: var(--tg-theme-button-color, #2ea6ff);
-      --button-text: var(--tg-theme-button-text-color, #ffffff);
-      --danger: var(--tg-theme-destructive-text-color, #ff5f57);
-      --line: color-mix(in srgb, var(--text) 13%, transparent);
-    }
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; }
-    body { min-height: 100vh; min-height: 100dvh; overscroll-behavior: none; }
-    button, input { font: inherit; }
-    .app { width: 100%; max-width: 720px; margin: 0 auto; padding: calc(8px + env(safe-area-inset-top)) 10px calc(14px + env(safe-area-inset-bottom)); }
-    .search-shell { position: sticky; top: 0; z-index: 5; padding: 6px 0 10px; background: var(--bg); }
-    .search { width: 100%; height: 46px; border: 1px solid var(--line); border-radius: 14px; outline: none; padding: 0 14px; background: var(--surface); color: var(--text); font-size: 16px; }
-    .search::placeholder { color: var(--hint); }
-    .search:focus { border-color: var(--button); }
-    .meta { min-height: 24px; padding: 0 4px 6px; color: var(--hint); font-size: 13px; line-height: 18px; }
-    .list { display: flex; flex-direction: column; gap: 7px; }
-    .restaurant { width: 100%; min-height: 50px; border: 1px solid var(--line); border-radius: 13px; padding: 12px 14px; background: var(--surface); color: var(--text); text-align: left; line-height: 1.25; cursor: pointer; }
-    .restaurant:active { opacity: .72; }
-    .empty, .fatal { display: none; padding: 24px 10px; color: var(--hint); text-align: center; }
-    .fatal { color: var(--danger); }
-    .confirm-layer { position: fixed; inset: 0; z-index: 20; display: none; align-items: flex-end; background: rgba(0,0,0,.32); }
-    .confirm-layer.open { display: flex; }
-    .confirm-card { width: 100%; max-width: 720px; margin: 0 auto; padding: 18px 14px calc(14px + env(safe-area-inset-bottom)); border-radius: 20px 20px 0 0; background: var(--surface); box-shadow: 0 -12px 36px rgba(0,0,0,.20); }
-    .confirm-title { margin: 0 0 8px; font-size: 18px; font-weight: 650; line-height: 1.35; }
-    .confirm-message { min-height: 20px; margin: 0 0 16px; color: var(--hint); font-size: 14px; line-height: 1.4; white-space: pre-line; }
-    .actions { display: grid; grid-template-columns: 1fr; gap: 8px; }
-    .action { width: 100%; min-height: 48px; border: 0; border-radius: 13px; padding: 10px 14px; cursor: pointer; font-weight: 650; }
-    .action.primary { background: var(--button); color: var(--button-text); }
-    .action.cancel { background: color-mix(in srgb, var(--danger) 13%, var(--surface)); color: var(--danger); border: 1px solid color-mix(in srgb, var(--danger) 32%, transparent); }
-    .action:disabled { opacity: .55; cursor: default; }
+    :root{--bg:var(--tg-theme-bg-color,#081310);--text:var(--tg-theme-text-color,#f2f7f5);--hint:var(--tg-theme-hint-color,#8ea09a);--surface:var(--tg-theme-secondary-bg-color,#10201b);--button:var(--tg-theme-button-color,#2ea6ff);--button-text:var(--tg-theme-button-text-color,#fff);--danger:var(--tg-theme-destructive-text-color,#ff5f57);--line:color-mix(in srgb,var(--text) 13%,transparent)}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}body{min-height:100vh;min-height:100dvh;overscroll-behavior:none}button,input{font:inherit}.app{width:100%;max-width:720px;margin:0 auto;padding:calc(8px + env(safe-area-inset-top)) 10px calc(14px + env(safe-area-inset-bottom))}.search-shell{position:sticky;top:0;z-index:5;padding:6px 0 10px;background:var(--bg)}.search{width:100%;height:46px;border:1px solid var(--line);border-radius:14px;outline:none;padding:0 14px;background:var(--surface);color:var(--text);font-size:16px}.search::placeholder{color:var(--hint)}.search:focus{border-color:var(--button)}.meta{min-height:24px;padding:0 4px 6px;color:var(--hint);font-size:13px;line-height:18px}.list{display:flex;flex-direction:column;gap:7px}.restaurant{width:100%;min-height:50px;border:1px solid var(--line);border-radius:13px;padding:12px 14px;background:var(--surface);color:var(--text);text-align:left;line-height:1.25;cursor:pointer}.restaurant:active{opacity:.72}.empty,.fatal{display:none;padding:24px 10px;color:var(--hint);text-align:center}.fatal{color:var(--danger)}.confirm-layer{position:fixed;inset:0;z-index:20;display:none;align-items:flex-end;background:rgba(0,0,0,.32)}.confirm-layer.open{display:flex}.confirm-card{width:100%;max-width:720px;margin:0 auto;padding:18px 14px calc(14px + env(safe-area-inset-bottom));border-radius:20px 20px 0 0;background:var(--surface);box-shadow:0 -12px 36px rgba(0,0,0,.20)}.confirm-title{margin:0 0 8px;font-size:18px;font-weight:650;line-height:1.35}.confirm-message{min-height:20px;margin:0 0 16px;color:var(--hint);font-size:14px;line-height:1.4;white-space:pre-line}.actions{display:grid;grid-template-columns:1fr;gap:8px}.action{width:100%;min-height:48px;border:0;border-radius:13px;padding:10px 14px;cursor:pointer;font-weight:650}.action.primary{background:var(--button);color:var(--button-text)}.action.cancel{background:color-mix(in srgb,var(--danger) 13%,var(--surface));color:var(--danger);border:1px solid color-mix(in srgb,var(--danger) 32%,transparent)}.action:disabled{opacity:.55;cursor:default}
   </style>
   <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
-  <script>
-    (function () {
-      if (!window.Telegram || !Telegram.WebApp) return;
-      const tg = Telegram.WebApp;
-      try { tg.setBackgroundColor('#081310'); } catch (e) {}
-      try { tg.setHeaderColor('#081310'); } catch (e) {}
-      try { tg.expand(); } catch (e) {}
-      try { tg.ready(); } catch (e) {}
-    })();
-  </script>
+  <script>(function(){if(!window.Telegram||!Telegram.WebApp)return;const tg=Telegram.WebApp;try{tg.setBackgroundColor('#081310')}catch(e){}try{tg.setHeaderColor('#081310')}catch(e){}try{tg.expand()}catch(e){}try{tg.ready()}catch(e){}})();</script>
 </head>
 <body>
   <main class="app">
-    <div class="search-shell">
-      <input id="search" class="search" type="search" inputmode="search" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Поиск ресторана" aria-label="Поиск ресторана">
-    </div>
-    <div class="meta" id="meta">Загрузка списка…</div>
-    <div class="list" id="list"></div>
-    <div class="empty" id="empty">Ничего не найдено</div>
-    <div class="fatal" id="fatal"></div>
+    <div class="search-shell"><input id="search" class="search" type="search" inputmode="search" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Поиск ресторана" aria-label="Поиск ресторана"></div>
+    <div class="meta" id="meta">Загрузка списка…</div><div class="list" id="list"></div><div class="empty" id="empty">Ничего не найдено</div><div class="fatal" id="fatal"></div>
   </main>
-
-  <div class="confirm-layer" id="confirm" aria-hidden="true">
-    <section class="confirm-card" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
-      <h2 class="confirm-title" id="confirmTitle"></h2>
-      <p class="confirm-message" id="confirmMessage">Получить чекин?</p>
-      <div class="actions">
-        <button class="action primary" id="confirmButton" type="button">Получить чекин</button>
-        <button class="action cancel" id="cancelButton" type="button">Отмена</button>
-      </div>
-    </section>
-  </div>
-
+  <div class="confirm-layer" id="confirm" aria-hidden="true"><section class="confirm-card" role="dialog" aria-modal="true" aria-labelledby="confirmTitle"><h2 class="confirm-title" id="confirmTitle"></h2><p class="confirm-message" id="confirmMessage">Получить чекин?</p><div class="actions"><button class="action primary" id="confirmButton" type="button">Получить чекин</button><button class="action cancel" id="cancelButton" type="button">Отмена</button></div></section></div>
   <script>
-    (function () {
+    (function(){
       'use strict';
-
-      const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbwu6Ga0gmzQBlCZu3CXA0RpsKymjmNoKCgTGGOE-Vq6aeqF8oj4iLynotaqdj-QGI7_nA/exec';
-      const CACHE_KEY = 'evrasia_restaurants_v2';
-      const listNode = document.getElementById('list');
-      const searchNode = document.getElementById('search');
-      const metaNode = document.getElementById('meta');
-      const emptyNode = document.getElementById('empty');
-      const fatalNode = document.getElementById('fatal');
-      const confirmNode = document.getElementById('confirm');
-      const confirmTitleNode = document.getElementById('confirmTitle');
-      const confirmMessageNode = document.getElementById('confirmMessage');
-      const confirmButton = document.getElementById('confirmButton');
-      const cancelButton = document.getElementById('cancelButton');
-
-      let restaurants = [];
-      let selected = null;
-      let requestRunning = false;
-      let resultShown = false;
-      let callbackSerial = 0;
-
-      function telegramApp() {
-        return window.Telegram && Telegram.WebApp ? Telegram.WebApp : null;
-      }
-
-      function normalize(value) {
-        return String(value || '')
-          .toLocaleLowerCase('ru-RU')
-          .replace(/ё/g, 'е')
-          .replace(/[«»"'`.,()\-–—/\\]/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim();
-      }
-
-      function prepareRows(rows) {
-        return (Array.isArray(rows) ? rows : []).map(function (row) {
-          return {
-            id: String(row.id || ''),
-            title: String(row.title || ''),
-            search: normalize(row.title)
-          };
-        }).filter(function (row) { return row.id && row.title; });
-      }
-
-      function haptic(kind) {
-        try {
-          const tg = telegramApp();
-          if (!tg || !tg.HapticFeedback) return;
-          if (kind === 'select') tg.HapticFeedback.selectionChanged();
-          else if (kind === 'success' || kind === 'error') tg.HapticFeedback.notificationOccurred(kind);
-          else tg.HapticFeedback.impactOccurred(kind || 'light');
-        } catch (e) {}
-      }
-
-      function hideKeyboard() {
-        searchNode.blur();
-        try {
-          const tg = telegramApp();
-          if (tg && typeof tg.hideKeyboard === 'function') tg.hideKeyboard();
-        } catch (e) {}
-      }
-
-      function jsonp(params, timeoutMs) {
-        return new Promise(function (resolve, reject) {
-          callbackSerial += 1;
-          const callbackName = '__evrasiaJsonp' + Date.now().toString(36) + callbackSerial.toString(36);
-          const script = document.createElement('script');
-          const query = new URLSearchParams(params || {});
-          query.set('api', 'mini');
-          query.set('callback', callbackName);
-          const timer = setTimeout(function () {
-            cleanup();
-            reject(new Error('Сервер не ответил вовремя.'));
-          }, timeoutMs || 12000);
-
-          function cleanup() {
-            clearTimeout(timer);
-            try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
-            if (script.parentNode) script.parentNode.removeChild(script);
-          }
-
-          window[callbackName] = function (payload) {
-            cleanup();
-            resolve(payload);
-          };
-          script.onerror = function () {
-            cleanup();
-            reject(new Error('Не удалось связаться с сервером.'));
-          };
-          script.src = BACKEND_URL + '?' + query.toString();
-          document.head.appendChild(script);
-        });
-      }
-
-      function resetConfirmationControls() {
-        requestRunning = false;
-        resultShown = false;
-        confirmButton.disabled = false;
-        cancelButton.disabled = false;
-        confirmButton.textContent = 'Получить чекин';
-        cancelButton.textContent = 'Отмена';
-        confirmMessageNode.textContent = 'Получить чекин?';
-      }
-
-      function showConfirmation(row) {
-        selected = row;
-        resetConfirmationControls();
-        confirmTitleNode.textContent = row.title;
-        confirmNode.classList.add('open');
-        confirmNode.setAttribute('aria-hidden', 'false');
-        hideKeyboard();
-        haptic('select');
-      }
-
-      function hideConfirmation() {
-        if (requestRunning) return;
-        selected = null;
-        resetConfirmationControls();
-        confirmNode.classList.remove('open');
-        confirmNode.setAttribute('aria-hidden', 'true');
-        haptic('light');
-      }
-
-      function render(query) {
-        const normalizedQuery = normalize(query);
-        const tokens = normalizedQuery ? normalizedQuery.split(' ') : [];
-        const filtered = tokens.length
-          ? restaurants.filter(function (row) {
-              return tokens.every(function (token) { return row.search.indexOf(token) >= 0; });
-            })
-          : restaurants;
-
-        const fragment = document.createDocumentFragment();
-        filtered.forEach(function (row) {
-          const button = document.createElement('button');
-          button.type = 'button';
-          button.className = 'restaurant';
-          button.textContent = row.title;
-          button.addEventListener('click', function () { showConfirmation(row); }, { passive: true });
-          fragment.appendChild(button);
-        });
-
-        listNode.replaceChildren(fragment);
-        if (restaurants.length) {
-          metaNode.textContent = filtered.length === restaurants.length ? 'Ресторанов: ' + filtered.length : 'Найдено: ' + filtered.length;
-        }
-        emptyNode.style.display = restaurants.length && !filtered.length ? 'block' : 'none';
-      }
-
-      function showFatal(text) {
-        fatalNode.textContent = String(text || 'Не удалось открыть список ресторанов.');
-        fatalNode.style.display = 'block';
-      }
-
-      function loadCachedRestaurants() {
-        try {
-          const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
-          const rows = prepareRows(cached && cached.restaurants);
-          if (!rows.length) return false;
-          restaurants = rows;
-          render(searchNode.value);
-          return true;
-        } catch (e) {
-          return false;
-        }
-      }
-
-      function refreshRestaurants() {
-        return jsonp({ op: 'restaurants' }, 10000).then(function (payload) {
-          if (!payload || !payload.ok) throw new Error(payload && payload.error ? payload.error : 'Не удалось загрузить рестораны.');
-          const rows = prepareRows(payload.restaurants);
-          if (!rows.length) throw new Error('Список ресторанов пуст.');
-          restaurants = rows;
-          try { localStorage.setItem(CACHE_KEY, JSON.stringify({ version: payload.version || '', restaurants: payload.restaurants })); } catch (e) {}
-          render(searchNode.value);
-          return rows;
-        }).catch(function (error) {
-          if (!restaurants.length) showFatal(error && error.message ? error.message : 'Не удалось загрузить рестораны.');
-        });
-      }
-
-      function finishCheckin(result) {
-        requestRunning = false;
-        cancelButton.disabled = false;
-
-        if (result && result.ok) {
-          resultShown = true;
-          confirmTitleNode.textContent = 'Чекин: ' + String(result.checkin || '');
-          confirmMessageNode.textContent = String(result.restaurant || (selected && selected.title) || '');
-          confirmButton.disabled = false;
-          confirmButton.textContent = 'Выбрать другой ресторан';
-          cancelButton.textContent = 'Закрыть';
-          haptic('success');
-          return;
-        }
-
-        confirmMessageNode.textContent = String(result && result.error ? result.error : 'Не удалось получить чекин.');
-        confirmButton.disabled = false;
-        confirmButton.textContent = 'Повторить';
-        cancelButton.textContent = 'Отмена';
-        haptic('error');
-      }
-
-      function failCheckin(error) {
-        finishCheckin({ ok: false, error: error && error.message ? error.message : 'Не удалось связаться с сервером.' });
-      }
-
-      function newRequestId() {
-        try {
-          if (window.crypto && typeof crypto.randomUUID === 'function') return crypto.randomUUID().replace(/-/g, '');
-        } catch (e) {}
-        return Date.now().toString(36) + Math.random().toString(36).slice(2);
-      }
-
-      function submitCheckin() {
-        if (!selected || requestRunning) return;
-        if (resultShown) {
-          hideConfirmation();
-          return;
-        }
-
-        const tg = telegramApp();
-        const initData = tg ? String(tg.initData || '') : '';
-        if (!initData) {
-          confirmMessageNode.textContent = 'Telegram не передал авторизацию. Закройте окно и откройте приложение заново.';
-          haptic('error');
-          return;
-        }
-
-        requestRunning = true;
-        confirmButton.disabled = true;
-        cancelButton.disabled = true;
-        confirmButton.textContent = 'Получение…';
-        confirmMessageNode.textContent = 'Запрашиваем чекин…';
-        haptic('medium');
-
-        jsonp({
-          op: 'checkin',
-          initData: initData,
-          restaurantId: selected.id,
-          requestId: newRequestId()
-        }, 30000).then(finishCheckin).catch(failCheckin);
-      }
-
-      const hadCache = loadCachedRestaurants();
-      if (!hadCache) metaNode.textContent = 'Загрузка списка…';
-      refreshRestaurants();
-
-      searchNode.addEventListener('input', function () { render(searchNode.value); });
-      cancelButton.addEventListener('click', hideConfirmation);
-      confirmButton.addEventListener('click', submitCheckin);
-      confirmNode.addEventListener('click', function (event) { if (event.target === confirmNode) hideConfirmation(); });
-      document.addEventListener('keydown', function (event) { if (event.key === 'Escape' && confirmNode.classList.contains('open')) hideConfirmation(); });
+      const BACKEND_URL='https://script.google.com/macros/s/AKfycbwu6Ga0gmzQBlCZu3CXA0RpsKymjmNoKCgTGGOE-Vq6aeqF8oj4iLynotaqdj-QGI7_nA/exec';
+      const CACHE_KEY='evrasia_restaurants_v2';
+      const listNode=document.getElementById('list'),searchNode=document.getElementById('search'),metaNode=document.getElementById('meta'),emptyNode=document.getElementById('empty'),fatalNode=document.getElementById('fatal'),confirmNode=document.getElementById('confirm'),confirmTitleNode=document.getElementById('confirmTitle'),confirmMessageNode=document.getElementById('confirmMessage'),confirmButton=document.getElementById('confirmButton'),cancelButton=document.getElementById('cancelButton');
+      let restaurants=[],selected=null,requestRunning=false,resultShown=false,callbackSerial=0;
+      function telegramApp(){return window.Telegram&&Telegram.WebApp?Telegram.WebApp:null}
+      function normalize(value){return String(value||'').toLocaleLowerCase('ru-RU').replace(/ё/g,'е').replace(/[«»"'`.,()\-–—/\\]/g,' ').replace(/\s+/g,' ').trim()}
+      function prepareRows(rows){return(Array.isArray(rows)?rows:[]).map(function(row){return{id:String(row.id||''),title:String(row.title||''),search:normalize(row.title)}}).filter(function(row){return row.id&&row.title})}
+      function haptic(kind){try{const tg=telegramApp();if(!tg||!tg.HapticFeedback)return;if(kind==='select')tg.HapticFeedback.selectionChanged();else if(kind==='success'||kind==='error')tg.HapticFeedback.notificationOccurred(kind);else tg.HapticFeedback.impactOccurred(kind||'light')}catch(e){}}
+      function hideKeyboard(){searchNode.blur();try{const tg=telegramApp();if(tg&&typeof tg.hideKeyboard==='function')tg.hideKeyboard()}catch(e){}}
+      function jsonp(params,timeoutMs){return new Promise(function(resolve,reject){callbackSerial+=1;const callbackName='__evrasiaJsonp'+Date.now().toString(36)+callbackSerial.toString(36),script=document.createElement('script'),query=new URLSearchParams(params||{});query.set('api','mini');query.set('callback',callbackName);const timer=setTimeout(function(){cleanup();reject(new Error('Сервер не ответил вовремя.'))},timeoutMs||12000);function cleanup(){clearTimeout(timer);try{delete window[callbackName]}catch(e){window[callbackName]=undefined}if(script.parentNode)script.parentNode.removeChild(script)}window[callbackName]=function(payload){cleanup();resolve(payload)};script.onerror=function(){cleanup();reject(new Error('Не удалось связаться с сервером.'))};script.src=BACKEND_URL+'?'+query.toString();document.head.appendChild(script)})}
+      function resetConfirmationControls(){requestRunning=false;resultShown=false;confirmButton.disabled=false;cancelButton.disabled=false;confirmButton.textContent='Получить чекин';cancelButton.textContent='Отмена';cancelButton.style.display='';confirmMessageNode.textContent='Получить чекин?'}
+      function showConfirmation(row){selected=row;resetConfirmationControls();confirmTitleNode.textContent=row.title;confirmNode.classList.add('open');confirmNode.setAttribute('aria-hidden','false');hideKeyboard();haptic('select')}
+      function hideConfirmation(){if(requestRunning||resultShown)return;selected=null;resetConfirmationControls();confirmNode.classList.remove('open');confirmNode.setAttribute('aria-hidden','true');haptic('light')}
+      function closeMiniApp(){haptic('light');const tg=telegramApp();if(tg&&typeof tg.close==='function'){tg.close();return}confirmNode.classList.remove('open');confirmNode.setAttribute('aria-hidden','true')}
+      function render(query){const normalizedQuery=normalize(query),tokens=normalizedQuery?normalizedQuery.split(' '):[],filtered=tokens.length?restaurants.filter(function(row){return tokens.every(function(token){return row.search.indexOf(token)>=0})}):restaurants,fragment=document.createDocumentFragment();filtered.forEach(function(row){const button=document.createElement('button');button.type='button';button.className='restaurant';button.textContent=row.title;button.addEventListener('click',function(){showConfirmation(row)},{passive:true});fragment.appendChild(button)});listNode.replaceChildren(fragment);if(restaurants.length)metaNode.textContent=filtered.length===restaurants.length?'Ресторанов: '+filtered.length:'Найдено: '+filtered.length;emptyNode.style.display=restaurants.length&&!filtered.length?'block':'none'}
+      function showFatal(text){fatalNode.textContent=String(text||'Не удалось открыть список ресторанов.');fatalNode.style.display='block'}
+      function loadCachedRestaurants(){try{const cached=JSON.parse(localStorage.getItem(CACHE_KEY)||'null'),rows=prepareRows(cached&&cached.restaurants);if(!rows.length)return false;restaurants=rows;render(searchNode.value);return true}catch(e){return false}}
+      function refreshRestaurants(){return jsonp({op:'restaurants'},10000).then(function(payload){if(!payload||!payload.ok)throw new Error(payload&&payload.error?payload.error:'Не удалось загрузить рестораны.');const rows=prepareRows(payload.restaurants);if(!rows.length)throw new Error('Список ресторанов пуст.');restaurants=rows;try{localStorage.setItem(CACHE_KEY,JSON.stringify({version:payload.version||'',restaurants:payload.restaurants}))}catch(e){}render(searchNode.value);return rows}).catch(function(error){if(!restaurants.length)showFatal(error&&error.message?error.message:'Не удалось загрузить рестораны.')})}
+      function finishCheckin(result){requestRunning=false;if(result&&result.ok){resultShown=true;confirmTitleNode.textContent='Чекин: '+String(result.checkin||'');confirmMessageNode.textContent=String(result.restaurant||(selected&&selected.title)||'');confirmButton.disabled=false;confirmButton.textContent='Ок';cancelButton.disabled=false;cancelButton.style.display='none';haptic('success');return}confirmMessageNode.textContent=String(result&&result.error?result.error:'Не удалось получить чекин.');confirmButton.disabled=false;confirmButton.textContent='Повторить';cancelButton.disabled=false;cancelButton.style.display='';cancelButton.textContent='Отмена';haptic('error')}
+      function failCheckin(error){finishCheckin({ok:false,error:error&&error.message?error.message:'Не удалось связаться с сервером.'})}
+      function newRequestId(){try{if(window.crypto&&typeof crypto.randomUUID==='function')return crypto.randomUUID().replace(/-/g,'')}catch(e){}return Date.now().toString(36)+Math.random().toString(36).slice(2)}
+      function submitCheckin(){if(!selected||requestRunning)return;if(resultShown){closeMiniApp();return}const tg=telegramApp(),initData=tg?String(tg.initData||''):'';if(!initData){confirmMessageNode.textContent='Telegram не передал авторизацию. Закройте окно и откройте приложение заново.';haptic('error');return}requestRunning=true;confirmButton.disabled=true;cancelButton.disabled=true;confirmButton.textContent='Получение…';confirmMessageNode.textContent='Запрашиваем чекин…';haptic('medium');jsonp({op:'checkin',initData:initData,restaurantId:selected.id,requestId:newRequestId()},30000).then(finishCheckin).catch(failCheckin)}
+      const hadCache=loadCachedRestaurants();if(!hadCache)metaNode.textContent='Загрузка списка…';refreshRestaurants();
+      searchNode.addEventListener('input',function(){render(searchNode.value)});cancelButton.addEventListener('click',hideConfirmation);confirmButton.addEventListener('click',submitCheckin);confirmNode.addEventListener('click',function(event){if(event.target===confirmNode&&!requestRunning&&!resultShown)hideConfirmation()});document.addEventListener('keydown',function(event){if(event.key==='Escape'&&confirmNode.classList.contains('open')&&!requestRunning&&!resultShown)hideConfirmation()});
     })();
   </script>
 </body>
