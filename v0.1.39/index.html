@@ -1,1 +1,130 @@
-PLACEHOLDER
+<!doctype html>
+<html lang="ru" data-app="evrasia-mini-direct">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#081310">
+  <meta name="color-scheme" content="dark light">
+  <style>
+    :root{--bg:var(--tg-theme-bg-color,#081310);--text:var(--tg-theme-text-color,#f2f7f5);--hint:var(--tg-theme-hint-color,#8ea09a);--surface:var(--tg-theme-secondary-bg-color,#10201b);--button:var(--tg-theme-button-color,#2ea6ff);--button-text:var(--tg-theme-button-text-color,#fff);--danger:var(--tg-theme-destructive-text-color,#ff5f57);--line:color-mix(in srgb,var(--text) 13%,transparent)}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+    body{min-height:100vh;min-height:100dvh;overscroll-behavior:none}
+    button,input{font:inherit}
+    .app{width:100%;max-width:720px;margin:0 auto;padding:calc(8px + env(safe-area-inset-top)) 10px calc(14px + env(safe-area-inset-bottom))}
+    .search-shell{position:sticky;top:0;z-index:5;padding:6px 0 10px;background:var(--bg)}
+    .search{width:100%;height:46px;border:1px solid var(--line);border-radius:14px;outline:none;padding:0 14px;background:var(--surface);color:var(--text);font-size:16px}
+    .search::placeholder{color:var(--hint)}
+    .search:focus{border-color:var(--button)}
+    .meta{min-height:24px;padding:0 4px 6px;color:var(--hint);font-size:13px;line-height:18px}
+    .list{display:flex;flex-direction:column;gap:7px}
+    .section-title{padding:10px 4px 2px;color:var(--hint);font-size:12px;font-weight:700;letter-spacing:.02em;text-transform:uppercase}
+    .restaurant{width:100%;min-height:50px;border:1px solid var(--line);border-radius:13px;padding:12px 14px;background:var(--surface);color:var(--text);text-align:left;line-height:1.25;cursor:pointer}
+    .restaurant.recent:before{content:'↻ ';color:var(--hint)}
+    .restaurant:active{opacity:.72}
+    .empty,.fatal{display:none;padding:24px 10px;color:var(--hint);text-align:center}
+    .fatal{color:var(--danger)}
+    .confirm-layer{position:fixed;inset:0;z-index:20;display:none;align-items:flex-end;background:rgba(0,0,0,.32)}
+    .confirm-layer.open{display:flex}
+    .confirm-card{width:100%;max-width:720px;margin:0 auto;padding:18px 14px calc(14px + env(safe-area-inset-bottom));border-radius:20px 20px 0 0;background:var(--surface);box-shadow:0 -12px 36px rgba(0,0,0,.20)}
+    .confirm-title{margin:0 0 8px;font-size:18px;font-weight:650;line-height:1.35}
+    .confirm-message{min-height:20px;margin:0 0 16px;color:var(--hint);font-size:14px;line-height:1.4;white-space:pre-line}
+    .actions{display:grid;grid-template-columns:1fr;gap:8px}
+    .action{width:100%;min-height:48px;border:0;border-radius:13px;padding:10px 14px;cursor:pointer;font-weight:650}
+    .action.primary{background:var(--button);color:var(--button-text)}
+    .action.secondary{background:var(--surface);color:var(--text);border:1px solid var(--line)}
+    .action.cancel{background:color-mix(in srgb,var(--danger) 13%,var(--surface));color:var(--danger);border:1px solid color-mix(in srgb,var(--danger) 32%,transparent)}
+    .action:disabled{opacity:.55;cursor:default}
+  </style>
+  <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
+  <script>(function(){if(!window.Telegram||!Telegram.WebApp)return;const tg=Telegram.WebApp;try{tg.setBackgroundColor('#081310')}catch(e){}try{tg.setHeaderColor('#081310')}catch(e){}try{tg.expand()}catch(e){}try{tg.ready()}catch(e){}})();</script>
+</head>
+<body>
+  <main class="app">
+    <div class="search-shell"><input id="search" class="search" type="search" inputmode="search" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Поиск ресторана" aria-label="Поиск ресторана"></div>
+    <div class="meta" id="meta">Загрузка списка…</div>
+    <div class="list" id="list"></div>
+    <div class="empty" id="empty">Ничего не найдено</div>
+    <div class="fatal" id="fatal"></div>
+  </main>
+  <div class="confirm-layer" id="confirm" aria-hidden="true">
+    <section class="confirm-card" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <h2 class="confirm-title" id="confirmTitle"></h2>
+      <p class="confirm-message" id="confirmMessage">Получить чекин?</p>
+      <div class="actions">
+        <button class="action primary" id="confirmButton" type="button">Получить чекин</button>
+        <button class="action cancel" id="cancelButton" type="button">Отмена</button>
+      </div>
+    </section>
+  </div>
+  <script>
+    (function(){
+      'use strict';
+      const BACKEND_URL='https://script.google.com/macros/s/AKfycbwu6Ga0gmzQBlCZu3CXA0RpsKymjmNoKCgTGGOE-Vq6aeqF8oj4iLynotaqdj-QGI7_nA/exec';
+      const BOT_CHAT_URL='https://t.me/evrasia_checkin_bot';
+      const CACHE_KEY='evrasia_restaurants_v2';
+      const RECENT_KEY='evrasia_recent_restaurants_v1';
+      const RECENT_LIMIT=5;
+      const listNode=document.getElementById('list');
+      const searchNode=document.getElementById('search');
+      const metaNode=document.getElementById('meta');
+      const emptyNode=document.getElementById('empty');
+      const fatalNode=document.getElementById('fatal');
+      const confirmNode=document.getElementById('confirm');
+      const confirmTitleNode=document.getElementById('confirmTitle');
+      const confirmMessageNode=document.getElementById('confirmMessage');
+      const confirmButton=document.getElementById('confirmButton');
+      const cancelButton=document.getElementById('cancelButton');
+      let restaurants=[];
+      let selected=null;
+      let requestRunning=false;
+      let resultShown=false;
+      let preferredBusy=false;
+      let callbackSerial=0;
+      let missTimer=0;
+      let lastMissSent='';
+
+      function telegramApp(){return window.Telegram&&Telegram.WebApp?Telegram.WebApp:null}
+      function normalize(value){return String(value||'').toLocaleLowerCase('ru-RU').replace(/ё/g,'е').replace(/[«»"'`.,()\-–—/\\]/g,' ').replace(/\s+/g,' ').trim()}
+      function prepareRows(rows){return(Array.isArray(rows)?rows:[]).map(function(row){return{id:String(row.id||''),title:String(row.title||''),search:normalize(row.title)}}).filter(function(row){return row.id&&row.title})}
+      function haptic(kind){try{const tg=telegramApp();if(!tg||!tg.HapticFeedback)return;if(kind==='select')tg.HapticFeedback.selectionChanged();else if(kind==='success'||kind==='error')tg.HapticFeedback.notificationOccurred(kind);else tg.HapticFeedback.impactOccurred(kind||'light')}catch(e){}}
+      function hideKeyboard(){searchNode.blur();try{const tg=telegramApp();if(tg&&typeof tg.hideKeyboard==='function')tg.hideKeyboard()}catch(e){}}
+      function jsonp(params,timeoutMs){return new Promise(function(resolve,reject){callbackSerial+=1;const callbackName='__evrasiaJsonp'+Date.now().toString(36)+callbackSerial.toString(36),script=document.createElement('script'),query=new URLSearchParams(params||{});query.set('api','mini');query.set('callback',callbackName);const timer=setTimeout(function(){cleanup();reject(new Error('Сервер не ответил вовремя.'))},timeoutMs||12000);function cleanup(){clearTimeout(timer);try{delete window[callbackName]}catch(e){window[callbackName]=undefined}if(script.parentNode)script.parentNode.removeChild(script)}window[callbackName]=function(payload){cleanup();resolve(payload)};script.onerror=function(){cleanup();reject(new Error('Не удалось связаться с сервером.'))};script.src=BACKEND_URL+'?'+query.toString();document.head.appendChild(script)})}
+      function restoreDefaultButtons(){confirmButton.className='action primary';cancelButton.className='action cancel'}
+      function resetConfirmationControls(){requestRunning=false;resultShown=false;preferredBusy=false;confirmButton.disabled=false;cancelButton.disabled=false;restoreDefaultButtons();confirmButton.textContent='Получить чекин';cancelButton.textContent='Отмена';cancelButton.style.display='';confirmMessageNode.textContent='Получить чекин?'}
+      function showConfirmation(row){selected=row;resetConfirmationControls();confirmTitleNode.textContent=row.title;confirmNode.classList.add('open');confirmNode.setAttribute('aria-hidden','false');hideKeyboard();haptic('select')}
+      function hideConfirmation(){if(requestRunning||resultShown)return;selected=null;resetConfirmationControls();confirmNode.classList.remove('open');confirmNode.setAttribute('aria-hidden','true');haptic('light')}
+      function openBotChat(){haptic('light');const tg=telegramApp();if(tg&&typeof tg.openTelegramLink==='function'){try{tg.openTelegramLink(BOT_CHAT_URL);setTimeout(function(){try{if(typeof tg.close==='function')tg.close()}catch(e){}},300);return}catch(e){}}if(tg&&typeof tg.openLink==='function'){try{tg.openLink(BOT_CHAT_URL);return}catch(e){}}window.location.href=BOT_CHAT_URL}
+      function readRecent(){try{const ids=JSON.parse(localStorage.getItem(RECENT_KEY)||'[]');return Array.isArray(ids)?ids.map(String).slice(0,RECENT_LIMIT):[]}catch(e){return[]}}
+      function rememberRecent(row){if(!row||!row.id)return;const ids=readRecent().filter(function(id){return id!==String(row.id)});ids.unshift(String(row.id));try{localStorage.setItem(RECENT_KEY,JSON.stringify(ids.slice(0,RECENT_LIMIT)))}catch(e){}}
+      function recentRows(){const byId={};restaurants.forEach(function(row){byId[row.id]=row});return readRecent().map(function(id){return byId[id]}).filter(Boolean)}
+      function createButton(row,isRecent){const button=document.createElement('button');button.type='button';button.className='restaurant'+(isRecent?' recent':'');button.textContent=row.title;button.addEventListener('click',function(){showConfirmation(row)},{passive:true});return button}
+      function titleNode(text){const node=document.createElement('div');node.className='section-title';node.textContent=text;return node}
+      function rankRow(row,query,tokens){if(!query)return 100;const s=row.search;if(s===query)return 0;if(s.indexOf(query)===0)return 1;const words=s.split(' ');if(tokens.every(function(token){return words.some(function(word){return word.indexOf(token)===0})}))return 2;if(tokens.every(function(token){return s.indexOf(token)>=0}))return 3;return 99}
+      function sendSearchMiss(rawQuery){const query=String(rawQuery||'').trim().slice(0,160),normalized=normalize(query),tg=telegramApp(),initData=tg?String(tg.initData||''):'';if(!query||!normalized||normalized===lastMissSent||!initData)return;lastMissSent=normalized;jsonp({op:'search_miss',initData:initData,query:query},8000).catch(function(){})}
+      function scheduleSearchMiss(rawQuery,resultCount){clearTimeout(missTimer);const query=String(rawQuery||'').trim(),normalized=normalize(query);if(!normalized||resultCount>0)return;missTimer=setTimeout(function(){if(normalize(searchNode.value)!==normalized||listNode.querySelectorAll('.restaurant').length!==0)return;sendSearchMiss(searchNode.value)},900)}
+      function render(query){const normalizedQuery=normalize(query),tokens=normalizedQuery?normalizedQuery.split(' '):[],fragment=document.createDocumentFragment();let filtered;if(tokens.length){filtered=restaurants.filter(function(row){return tokens.every(function(token){return row.search.indexOf(token)>=0})}).map(function(row,index){return{row:row,score:rankRow(row,normalizedQuery,tokens),index:index}}).sort(function(a,b){return a.score-b.score||a.index-b.index||a.row.title.localeCompare(b.row.title,'ru')}).map(function(item){return item.row})}else filtered=restaurants.slice();if(!tokens.length){const recent=recentRows();if(recent.length){fragment.appendChild(titleNode('Недавние'));recent.forEach(function(row){fragment.appendChild(createButton(row,true))});fragment.appendChild(titleNode('Все рестораны'))}}filtered.forEach(function(row){fragment.appendChild(createButton(row,false))});listNode.replaceChildren(fragment);if(restaurants.length)metaNode.textContent=tokens.length?'Найдено: '+filtered.length:'Ресторанов: '+restaurants.length;emptyNode.style.display=restaurants.length&&!filtered.length?'block':'none';scheduleSearchMiss(query,filtered.length)}
+      function showFatal(text){fatalNode.textContent=String(text||'Не удалось открыть список ресторанов.');fatalNode.style.display='block'}
+      function loadCachedRestaurants(){try{const cached=JSON.parse(localStorage.getItem(CACHE_KEY)||'null'),rows=prepareRows(cached&&cached.restaurants);if(!rows.length)return false;restaurants=rows;render(searchNode.value);return true}catch(e){return false}}
+      function refreshRestaurants(){return jsonp({op:'restaurants'},10000).then(function(payload){if(!payload||!payload.ok)throw new Error(payload&&payload.error?payload.error:'Не удалось загрузить рестораны.');const rows=prepareRows(payload.restaurants);if(!rows.length)throw new Error('Список ресторанов пуст.');restaurants=rows;try{localStorage.setItem(CACHE_KEY,JSON.stringify({version:payload.version||'',restaurants:payload.restaurants}))}catch(e){}render(searchNode.value);return rows}).catch(function(error){if(!restaurants.length)showFatal(error&&error.message?error.message:'Не удалось загрузить рестораны.')})}
+      function sendFinalize(result){const token=String(result&&result.finalizeToken||''),tg=telegramApp(),initData=tg?String(tg.initData||''):'';if(!token||!initData)return;const url=BACKEND_URL+'?api=mini&op=finalize',body=new URLSearchParams({initData:initData,finalizeToken:token});try{if(navigator.sendBeacon&&navigator.sendBeacon(url,body))return}catch(e){}try{fetch(url,{method:'POST',body:body,mode:'no-cors',keepalive:true,credentials:'omit'}).catch(function(){})}catch(e){}}
+      function showPreferredBusy(result){requestRunning=false;resultShown=false;preferredBusy=true;confirmTitleNode.textContent='Карта со списанием занята';confirmMessageNode.textContent=String(result&&result.error?result.error:'Карта со списанием на текущий момент занята.');confirmButton.disabled=false;cancelButton.disabled=false;confirmButton.className='action secondary';cancelButton.className='action primary';confirmButton.textContent='Получить чекин без списания';cancelButton.textContent='Дождусь';cancelButton.style.display='';haptic('light')}
+      function finishCheckin(result){if(result&&result.actionRequired==='preferred_card_busy'){showPreferredBusy(result);return}requestRunning=false;resultShown=true;preferredBusy=false;restoreDefaultButtons();sendFinalize(result);if(result&&result.ok){rememberRecent(selected);confirmTitleNode.textContent='Чекин: '+String(result.checkin||'');confirmMessageNode.textContent=String(result.restaurant||(selected&&selected.title)||'');haptic('success')}else{confirmMessageNode.textContent=String(result&&result.error?result.error:'Не удалось получить чекин.');haptic('error')}confirmButton.disabled=false;confirmButton.textContent='Ок';confirmButton.style.pointerEvents='auto';cancelButton.disabled=false;cancelButton.style.display='none'}
+      function failCheckin(error){finishCheckin({ok:false,error:error&&error.message?error.message:'Не удалось связаться с сервером.'})}
+      function newRequestId(){try{if(window.crypto&&typeof crypto.randomUUID==='function')return crypto.randomUUID().replace(/-/g,'')}catch(e){}return Date.now().toString(36)+Math.random().toString(36).slice(2)}
+      function requestCheckin(ignorePreferred){if(!selected||requestRunning)return;const tg=telegramApp(),initData=tg?String(tg.initData||''):'';if(!initData){finishCheckin({ok:false,error:'Telegram не передал авторизацию. Закройте окно и откройте приложение заново.'});return}preferredBusy=false;requestRunning=true;confirmButton.disabled=true;cancelButton.disabled=true;restoreDefaultButtons();confirmButton.textContent='Получение…';confirmMessageNode.textContent='Запрашиваем чекин…';haptic('medium');jsonp({op:'checkin',initData:initData,restaurantId:selected.id,requestId:newRequestId(),ignorePreferred:ignorePreferred?'1':'0'},30000).then(finishCheckin).catch(failCheckin)}
+      function submitCheckin(){if(resultShown){openBotChat();return}if(preferredBusy){requestCheckin(true);return}requestCheckin(false)}
+      function cancelAction(){if(preferredBusy){preferredBusy=false;hideConfirmation();return}hideConfirmation()}
+
+      const hadCache=loadCachedRestaurants();
+      if(!hadCache)metaNode.textContent='Загрузка списка…';
+      refreshRestaurants();
+      searchNode.addEventListener('input',function(){render(searchNode.value)});
+      cancelButton.addEventListener('click',cancelAction);
+      confirmButton.addEventListener('click',submitCheckin);
+      confirmNode.addEventListener('click',function(event){if(event.target===confirmNode&&!requestRunning&&!resultShown&&!preferredBusy)hideConfirmation()});
+      document.addEventListener('keydown',function(event){if(event.key==='Escape'&&confirmNode.classList.contains('open')&&!requestRunning&&!resultShown&&!preferredBusy)hideConfirmation()});
+    })();
+  </script>
+</body>
+</html>
